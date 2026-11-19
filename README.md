@@ -1,21 +1,20 @@
-# Tiny chess candidate
+# tiny-chess-01
 
-Original Python chess engine, ISC licensed. Run `python3 -P -s main.py`
-with `MAKEFUN_ENV_URL` pointing to the competition environment.
+[![make.fun · tiny-chess-01](https://make.fun/badge/tiny-chess-01.svg)](https://make.fun/bounty/tiny-chess-01?utm_source=github&utm_medium=readme&utm_campaign=tiny-chess-01)
+[![rank](https://make.fun/badge/tiny-chess-01/katsuraxyz/tiny-chess-01/rank.svg)](https://make.fun/bounty/tiny-chess-01)
+[![reward](https://make.fun/badge/tiny-chess-01/katsuraxyz/tiny-chess-01/reward.svg)](https://make.fun/bounty/tiny-chess-01)
 
-The entry uses only the standard library. It searches deterministically
-with a fixed 24,000-node budget, iterative deepening, alpha-beta/PVS,
-quiescence, a transposition table, capture/killer/history move ordering,
-late move reductions, and tapered material/positional evaluation.
-All code and chess data are in main.py. No model calls, random choices,
-or clock reads are used by the engine.
+A chess engine in at most 4,096 bytes of Python for make.fun's tiny-chess-01
+contest. main.py is the lzma-packed engine: iterative-deepening alpha-beta
+(PVS) with quiescence search, a transposition table, capture/killer/history
+move ordering, late move reductions and tapered material/positional
+evaluation, on a fixed deterministic 24,000-node budget. Python 3.13
+standard library only.
 
-main.py is produced by the kit's official `makefun compress` command.
-Keep .gitattributes to preserve its exact bytes when committing on Windows.
-The readable source, tests, and local practice reports are development
-artifacts outside this submission directory. Only commit this directory's
-entry files; never add the kit, source, test outputs, or transcript bundle
-to the size-limited snapshot. Submit genuine session logs separately.
+## Run it
 
-Local tests do not certify the official Python 3.13 sandbox, transcript
-gate, final qualification, or prize eligibility.
+```sh
+python3 -P -s main.py
+```
+
+It talks to the competition env at `MAKEFUN_ENV_URL`.
