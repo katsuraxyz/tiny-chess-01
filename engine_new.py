@@ -110,7 +110,9 @@ def evaluate(s):
             if not any(abs(xx-x)==1 for xx,yy in own): mg-=sign*10; eg-=sign*8
             if not any(abs(xx-x)<=1 and 7-yy>y for xx,yy in enemy): eg+=sign*y*y*6
     phase=min(24,phase)
-    return c*(mg*phase+eg*(24-phase))//24+12
+    bp=22 if sum(1 for p in b if p==3)>=2 else 0
+    bp-=22 if sum(1 for p in b if p==-3)>=2 else 0
+    return c*(mg*phase+eg*(24-phase))//24+12+bp
 
 class Stop(Exception): pass
 
@@ -144,6 +146,7 @@ def search(s,depth,alpha,beta,ply):
         if check and not next(moves(s),None): return -30000+ply
         return 0
     if ply>=64: return evaluate(s)
+    if depth==1 and not check and abs(alpha)>950 and evaluate(s)-110*1>=beta: return alpha
     entry=table.get(s); ttmove=entry[3] if entry else None
     if entry and depth>0 and entry[0]>=depth:
         score=entry[1]
@@ -162,7 +165,7 @@ def search(s,depth,alpha,beta,ply):
     bestmove=None; path.append(k)
     try:
         for i,(m,ns,cap) in enumerate(options):
-            reduction=1 if depth>=3 and i>=5 and not check and not cap and not m[2] and -c*6 in ns[0] and not attacked(ns[0],ns[0].index(-c*6),c) else 0
+            reduction=1 if depth>=4 and i>=5 and not check and not cap and not m[2] and -c*6 in ns[0] and not attacked(ns[0],ns[0].index(-c*6),c) else 0
             if i:
                 score=-search(ns,depth-1-reduction,-alpha-1,-alpha,ply+1)
                 if score>alpha and reduction: score=-search(ns,depth-1,-alpha-1,-alpha,ply+1)
