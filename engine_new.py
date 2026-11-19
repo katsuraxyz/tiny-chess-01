@@ -86,33 +86,33 @@ def moves(s):
                     yield m,ns,capture
 
 def evaluate(s):
-    b,c,r,e,h=s; mg=eg=phase=0; pawns=[[],[]]
+    b,c,r_,e,h=s
+    mg=eg=ph=0
+    wp=[[],[]]
     for a,p in enumerate(b):
         if not p: continue
-        sign=1 if p>0 else -1; p=abs(p); x=a&7; y=a>>4
-        if sign<0: y=7-y
-        center=7-abs(2*x-7)-abs(2*y-7)
-        v=V[p]; mid=end=v
-        if p==1:
-            mid+=y*7+center*3; end+=y*y*4+center*2; pawns[sign<0].append((x,y))
-        elif p==2: mid+=center*9; end+=center*6; phase+=1
-        elif p==3: mid+=center*5+y*2; end+=center*5; phase+=1
-        elif p==4: mid+=y*2+(15 if y==6 else 0); end+=center*2; phase+=2
-        elif p==5: mid+=center*2; end+=center*4; phase+=4
-        else:
-            mid+=-center*7-y*12+(25 if y==0 and x in (1,2,6) else 0)
-            end+=center*9
-        mg+=sign*mid; eg+=sign*end
-    for side in (0,1):
-        own=pawns[side]; enemy=pawns[1-side]; sign=1-2*side
-        for x,y in own:
-            if sum(xx==x for xx,yy in own)>1: mg-=sign*12; eg-=sign*18
-            if not any(abs(xx-x)==1 for xx,yy in own): mg-=sign*10; eg-=sign*8
-            if not any(abs(xx-x)<=1 and 7-yy>y for xx,yy in enemy): eg+=sign*y*y*6
-    phase=min(24,phase)
-    bp=22 if sum(1 for p in b if p==3)>=2 else 0
-    bp-=22 if sum(1 for p in b if p==-3)>=2 else 0
-    return c*(mg*phase+eg*(24-phase))//24+12+bp
+        side=1 if p>0 else -1; k=abs(p); x=a&7; y=(a>>4) if side>0 else 7-(a>>4)
+        ctr=7-abs(2*x-7)-abs(2*y-7)
+        m1=e1=V[k]
+        if k==1:
+            m1+=y*7+ctr*3; e1+=y*y*4+ctr*2; wp[side<0].append((x,y))
+        elif k==2: m1+=ctr*9; e1+=ctr*6; ph+=1
+        elif k==3: m1+=ctr*5+y*2; e1+=ctr*5; ph+=1
+        elif k==4: m1+=y*2+(15 if y==6 else 0); e1+=ctr*2; ph+=2
+        elif k==5: m1+=ctr*2; e1+=ctr*4; ph+=4
+        else: m1+=-ctr*7-y*12+(25 if y==0 and x in (1,2,6) else 0); e1+=ctr*9
+        mg+=side*m1; eg+=side*e1
+    ph=24 if ph>24 else ph
+    for sd in (0,1):
+        mine=wp[sd]; theirs=wp[1-sd]; sg=1-2*sd
+        for x,y in mine:
+            if sum(qx==x for qx,qy in mine)>1: mg-=sg*12; eg-=sg*18
+            if not any(abs(qx-x)==1 for qx,qy in mine): mg-=sg*10; eg-=sg*8
+            if not any(abs(qx-x)<=1 and 7-qy>y for qx,qy in theirs): eg+=sg*y*y*6
+    pair=0
+    if sum(1 for q in b if q==3)>=2: pair+=22
+    if sum(1 for q in b if q==-3)>=2: pair-=22
+    return c*(mg*ph+eg*(24-ph))//24+12+pair
 
 class Stop(Exception): pass
 
