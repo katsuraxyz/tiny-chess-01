@@ -140,47 +140,53 @@ def search(s,depth,alpha,beta,ply):
     global nodes
     nodes+=1
     if nodes>LIMIT: raise Stop
-    b,c,r,e,h=s; k=key(s); original=alpha
-    check=attacked(b,b.index(6*c),-c)
+    b,c,r_,e,h=s; k=key(s); a0=alpha
+    chk=attacked(b,b.index(6*c),-c)
     if h>=100 or path.count(k)>=2:
-        if check and not next(moves(s),None): return -30000+ply
+        if chk and not next(moves(s),None): return -30000+ply
         return 0
     if ply>=64: return evaluate(s)
-    if depth==1 and not check and abs(alpha)>950 and evaluate(s)-110*1>=beta: return alpha
-    entry=table.get(s); ttmove=entry[3] if entry else None
-    if entry and depth>0 and entry[0]>=depth:
-        score=entry[1]
-        if score>29000: score-=ply
-        if score< -29000: score+=ply
-        if entry[2]==0 or entry[2]==1 and score>=beta or entry[2]==-1 and score<=alpha: return score
-    options=list(moves(s))
-    if not options: return -30000+ply if check else 0
-    best=-32000
-    if depth<=0 and not check:
-        best=evaluate(s)
-        if best>=beta: return best
-        alpha=max(alpha,best)
-        options=[v for v in options if v[2] or v[0][2]]
-    options.sort(key=lambda v: (v[0]==ttmove, 10000+V[v[2]]*10-V[abs(b[v[0][0]])]+V[v[0][2]] if v[2] or v[0][2] else 5000 if v[0]==killers.get(ply) else history.get((c,v[0]),0)),reverse=True)
-    bestmove=None; path.append(k)
+    hit=table.get(s)
+    tmove=hit[3] if hit else None
+    if hit and depth>0 and hit[0]>=depth:
+        sc=hit[1]
+        if sc>29000: sc-=ply
+        elif sc<-29000: sc+=ply
+        if hit[2]==0 or (hit[2]==1 and sc>=beta) or (hit[2]==-1 and sc<=alpha): return sc
+    opts=list(moves(s))
+    if not opts: return -30000+ply if chk else 0
+    if depth<=0 and not chk:
+        stand=evaluate(s)
+        if stand>=beta: return stand
+        if stand>alpha: alpha=stand
+        opts=[v for v in opts if v[2] or v[0][2]]
+        if not opts: return alpha
+    def order(v):
+        m,ns,cap=v
+        if m==tmove: return 3
+        if cap or m[2]: return 2
+        if m==killers.get(ply): return 1
+        return 0
+    opts.sort(key=order,reverse=True)
+    best=-32000; move=None; path.append(k)
     try:
-        for i,(m,ns,cap) in enumerate(options):
-            reduction=1 if depth>=4 and i>=5 and not check and not cap and not m[2] and -c*6 in ns[0] and not attacked(ns[0],ns[0].index(-c*6),c) else 0
-            if i:
-                score=-search(ns,depth-1-reduction,-alpha-1,-alpha,ply+1)
-                if score>alpha and reduction: score=-search(ns,depth-1,-alpha-1,-alpha,ply+1)
-                if alpha<score<beta: score=-search(ns,depth-1,-beta,-alpha,ply+1)
-            else: score=-search(ns,depth-1,-beta,-alpha,ply+1)
-            if score>best: best=score; bestmove=m
-            alpha=max(alpha,score)
-            if alpha>=beta:
-                if not cap and not m[2] and depth>0:
-                    killers[ply]=m; history[c,m]=min(8000,history.get((c,m),0)+depth*depth)
-                break
+        for i,(m,ns,cap) in enumerate(opts):
+            drop=1 if depth>=4 and i>=5 and not chk and not cap and not m[2] and (-c*6 not in ns[0] or not attacked(ns[0],ns[0].index(-c*6),c)) else 0
+            if i==0: sc=-search(ns,depth-1,-beta,-alpha,ply+1)
+            else:
+                sc=-search(ns,depth-1-drop,-alpha-1,-alpha,ply+1)
+                if alpha<sc<beta and drop: sc=-search(ns,depth-1,-alpha-1,-alpha,ply+1)
+                if alpha<sc<beta: sc=-search(ns,depth-1,-beta,-alpha,ply+1)
+            if sc>best: best=sc; move=m
+            if sc>alpha:
+                alpha=sc
+                if alpha>=beta:
+                    if not cap and not m[2] and depth>0:
+                        killers[ply]=m; history[c,m]=min(8000,history.get((c,m),0)+depth*depth)
+                    break
     finally: path.pop()
     if depth>0:
-        score=best+ply if best>29000 else best-ply if best< -29000 else best
-        table[s]=(depth,score,1 if best>=beta else -1 if best<=original else 0,bestmove)
+        table[s]=(depth,best+ply if best>29000 else best-ply if best<-29000 else best,1 if best>=beta else -1 if best<=a0 else 0,move)
     return best
 
 def run():
