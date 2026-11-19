@@ -4,12 +4,14 @@
 [![rank](https://make.fun/badge/tiny-chess-01/katsuraxyz/tiny-chess-01/rank.svg)](https://make.fun/bounty/tiny-chess-01)
 [![reward](https://make.fun/badge/tiny-chess-01/katsuraxyz/tiny-chess-01/reward.svg)](https://make.fun/bounty/tiny-chess-01)
 
-A chess engine in at most 4,096 bytes of Python for make.fun's tiny-chess-01
-contest. main.py is the lzma-packed engine: iterative-deepening alpha-beta
-(PVS) with quiescence search, a transposition table, capture/killer/history
-move ordering, late move reductions and tapered material/positional
-evaluation, on a fixed deterministic 24,000-node budget. Python 3.13
-standard library only.
+A chess engine within 4,096 bytes of Python for make.fun's tiny-chess-01
+contest. main.py is the makefun-compress stub around an LZMA stream of the
+readable source: iterative-deepening alpha-beta (principal variation
+search), quiescence on captures and checks, a transposition table,
+capture, killer and history move ordering, late move reductions, and a
+tapered material-plus-positional evaluation with a bishop-pair term.
+The search is deterministic on a fixed node budget of 48,000 nodes a
+move; no wall clock, no seeded randomness and no model calls.
 
 ## Run it
 
@@ -17,4 +19,4 @@ standard library only.
 python3 -P -s main.py
 ```
 
-It talks to the competition env at `MAKEFUN_ENV_URL`.
+The engine reads MAKEFUN_ENV_URL and plays the trial's eight games.
